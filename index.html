@@ -7,10 +7,10 @@
     h1 { background: maroon; color: white; text-align: center; padding: 10px; }
     table { width: 100%; border-collapse: collapse; }
     td, th { border: 1px solid black; padding: 6px; }
-    input, textarea, select { width: 100%; border: none; }
+    input, textarea, select { width: 100%; border: none; padding: 5px; }
     textarea { height: 80px; }
     .section { background: #d9ead3; font-weight: bold; text-align: center; }
-    .btn { background: green; color: white; padding: 10px; border: none; width: 100%; }
+    .btn { background: green; color: white; padding: 12px; border: none; width: 100%; font-size: 16px; }
   </style>
 </head>
 
@@ -18,7 +18,7 @@
 
 <h1>KAIZEN REPORT FORM</h1>
 
-<h3 id="kaizenNo">Kaizen No: Auto</h3>
+<h3 id="kaizenNo">Kaizen No: Generating...</h3>
 
 <table>
 
@@ -83,10 +83,10 @@
 
 <tr>
   <td colspan="3">
-    <textarea id="problem"></textarea>
+    <textarea id="problem" placeholder="Enter problem..."></textarea>
   </td>
   <td colspan="3">
-    <textarea id="solution"></textarea>
+    <textarea id="solution" placeholder="Enter solution..."></textarea>
   </td>
 </tr>
 
@@ -104,10 +104,10 @@
 <tr>
   <td colspan="6">
     <select id="score">
-      <option value="1">1</option>
-      <option value="2">2</option>
-      <option value="3">3</option>
-      <option value="4">4</option>
+      <option value="1">1 - Basic</option>
+      <option value="2">2 - Moderate</option>
+      <option value="3">3 - Good</option>
+      <option value="4">4 - Excellent</option>
     </select>
   </td>
 </tr>
@@ -122,16 +122,19 @@
 
 <script>
 
-const FLOW_URL = "PASTE_YOUR_POWER_AUTOMATE_URL";
+// 🔥 YOUR POWER AUTOMATE URL
+const FLOW_URL = "https://default8402d370fd9c474580dbbf24428092.b6.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/d70365a7fbe348e8ad6a9752439cad16/triggers/manual/paths/invoke?api-version=1";
+
+// Generate Kaizen ID once
+const kaizenID = generateID();
+document.getElementById("kaizenNo").innerText =
+  "Kaizen No: " + kaizenID;
 
 function generateID() {
   const year = new Date().getFullYear();
-  const num = Math.floor(Math.random() * 1000);
+  const num = Math.floor(Math.random() * 10000);
   return `KZN-${year}-${String(num).padStart(4,'0')}`;
 }
-
-document.getElementById("kaizenNo").innerText =
-  "Kaizen No: " + generateID();
 
 function toBase64(file) {
   return new Promise((resolve) => {
@@ -143,15 +146,22 @@ function toBase64(file) {
 
 async function submitForm() {
 
+  // Validation
+  if (!document.getElementById("date").value) {
+    alert("Please select date");
+    return;
+  }
+
   const before = document.getElementById("beforeImage").files[0];
   const after = document.getElementById("afterImage").files[0];
 
   const data = {
+    kaizenID: kaizenID,
     date: document.getElementById("date").value,
     zone: document.getElementById("zone").value,
     zoneLeader: document.getElementById("zoneLeader").value,
     assembly: document.getElementById("assembly").value,
-    type: document.querySelector('input[name="type"]:checked')?.value,
+    type: document.querySelector('input[name="type"]:checked')?.value || "",
     problem: document.getElementById("problem").value,
     solution: document.getElementById("solution").value,
     score: document.getElementById("score").value,
@@ -159,13 +169,21 @@ async function submitForm() {
     afterImage: after ? await toBase64(after) : ""
   };
 
-  await fetch(FLOW_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
-  });
+  try {
+    await fetch(FLOW_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data),
+      mode: "no-cors" // IMPORTANT for your URL
+    });
 
-  alert("✅ Submitted Successfully");
+    alert("✅ Submitted Successfully!");
+  } catch (err) {
+    alert("❌ Submission failed");
+    console.error(err);
+  }
 }
 
 </script>
