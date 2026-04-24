@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Kaizen Report Form</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    h1 { background: maroon; color: white; text-align: center; padding: 10px; }
+    table { width: 100%; border-collapse: collapse; }
+    td, th { border: 1px solid black; padding: 6px; }
+    input, textarea, select { width: 100%; border: none; }
+    textarea { height: 80px; }
+    .section { background: #d9ead3; font-weight: bold; text-align: center; }
+    .btn { background: green; color: white; padding: 10px; border: none; width: 100%; }
+  </style>
+</head>
+
+<body>
+
+<h1>KAIZEN REPORT FORM</h1>
+
+<h3 id="kaizenNo">Kaizen No: Auto</h3>
+
+<table>
+
+<tr class="section"><td colspan="6">General Information</td></tr>
+
+<tr>
+  <td>Date</td>
+  <td><input type="date" id="date"></td>
+  <td>Zone</td>
+  <td>
+    <select id="zone">
+      <option>ZONE 1</option>
+      <option>ZONE 2</option>
+    </select>
+  </td>
+  <td>Department</td>
+  <td>Assembly</td>
+</tr>
+
+<tr>
+  <td>Zone Leader</td>
+  <td colspan="2">
+    <select id="zoneLeader">
+      <option>Mr. Arjun Vaghela</option>
+      <option>Mr. Naresh Mamiya</option>
+    </select>
+  </td>
+
+  <td>Assembly</td>
+  <td colspan="2">
+    <select id="assembly">
+      <option>Assembly A</option>
+      <option>Assembly B</option>
+    </select>
+  </td>
+</tr>
+
+<tr>
+  <td>Type</td>
+  <td colspan="5">
+    <label><input type="radio" name="type" value="Internal"> Internal</label>
+    <label><input type="radio" name="type" value="External"> External</label>
+  </td>
+</tr>
+
+<tr class="section"><td colspan="6">Kaizen Category</td></tr>
+
+<tr>
+  <td colspan="6">
+    <label><input type="checkbox"> Productivity</label>
+    <label><input type="checkbox"> Quality</label>
+    <label><input type="checkbox"> Safety</label>
+    <label><input type="checkbox"> Cost</label>
+    <label><input type="checkbox"> Environment</label>
+  </td>
+</tr>
+
+<tr class="section">
+  <td colspan="3">Before Improvement</td>
+  <td colspan="3">After Improvement</td>
+</tr>
+
+<tr>
+  <td colspan="3">
+    <textarea id="problem"></textarea>
+  </td>
+  <td colspan="3">
+    <textarea id="solution"></textarea>
+  </td>
+</tr>
+
+<tr>
+  <td colspan="3">
+    <input type="file" id="beforeImage">
+  </td>
+  <td colspan="3">
+    <input type="file" id="afterImage">
+  </td>
+</tr>
+
+<tr class="section"><td colspan="6">Score</td></tr>
+
+<tr>
+  <td colspan="6">
+    <select id="score">
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+    </select>
+  </td>
+</tr>
+
+<tr>
+  <td colspan="6">
+    <button class="btn" onclick="submitForm()">Submit Kaizen</button>
+  </td>
+</tr>
+
+</table>
+
+<script>
+
+const FLOW_URL = "PASTE_YOUR_POWER_AUTOMATE_URL";
+
+function generateID() {
+  const year = new Date().getFullYear();
+  const num = Math.floor(Math.random() * 1000);
+  return `KZN-${year}-${String(num).padStart(4,'0')}`;
+}
+
+document.getElementById("kaizenNo").innerText =
+  "Kaizen No: " + generateID();
+
+function toBase64(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+  });
+}
+
+async function submitForm() {
+
+  const before = document.getElementById("beforeImage").files[0];
+  const after = document.getElementById("afterImage").files[0];
+
+  const data = {
+    date: document.getElementById("date").value,
+    zone: document.getElementById("zone").value,
+    zoneLeader: document.getElementById("zoneLeader").value,
+    assembly: document.getElementById("assembly").value,
+    type: document.querySelector('input[name="type"]:checked')?.value,
+    problem: document.getElementById("problem").value,
+    solution: document.getElementById("solution").value,
+    score: document.getElementById("score").value,
+    beforeImage: before ? await toBase64(before) : "",
+    afterImage: after ? await toBase64(after) : ""
+  };
+
+  await fetch(FLOW_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+
+  alert("✅ Submitted Successfully");
+}
+
+</script>
+
+</body>
+</html>
